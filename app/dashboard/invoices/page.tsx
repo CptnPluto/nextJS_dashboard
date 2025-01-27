@@ -6,6 +6,7 @@ import { lusitana } from "@/app/ui/fonts";
 import { InvoicesTableSkeleton } from "@/app/ui/skeletons";
 import { Suspense } from "react";
 import { fetchInvoicesPages } from "@/app/lib/data";
+import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
 
 export default async function Page( { searchParams } : { searchParams?: Promise<{ query?: string; page?: string }> }) {
 	const params = await searchParams;
@@ -15,6 +16,7 @@ export default async function Page( { searchParams } : { searchParams?: Promise<
 
 	return (
 		<div className="w-full">
+            
 			<div className="flex w-full items-center justify-between">
 				<h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
 			</div>
