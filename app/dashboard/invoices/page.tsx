@@ -6,7 +6,6 @@ import { lusitana } from "@/app/ui/fonts";
 import { InvoicesTableSkeleton } from "@/app/ui/skeletons";
 import { Suspense } from "react";
 import { fetchInvoicesPages } from "@/app/lib/data";
-import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
 
 export default async function Page( { searchParams } : { searchParams?: Promise<{ query?: string; page?: string }> }) {
 	const params = await searchParams;
