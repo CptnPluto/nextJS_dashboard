@@ -52,29 +52,39 @@ export async function createInvoice(prevState: State, formData: FormData) {
         VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
     `;
 	} catch (error: any) {
-		return {message: "Failed to insert data into db: ", error: error};
+		return { message: "Failed to insert data into db: ", error: error };
 	}
-    
+
 	revalidatePath("/dashboard/invoices");
 	redirect("/dashboard/invoices");
 }
 
-export async function editInvoice(invoiceId: string, formData: FormData) {
-	try {
-		const { customerId, amount, status, id } = EditInvoice.parse({
-			...Object.fromEntries(formData),
-			id: invoiceId,
-		});
-		const amountInCents = amount * 100;
-
+export async function editInvoice(invoiceId: string, prevState: State, formData: FormData) {
+    const validatedFields = EditInvoice.safeParse({
+        customerId: formData.get("customerId"),
+        amount: formData.get("amount"),
+        status: formData.get("status"),
+        id: invoiceId,
+    });
+    
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: "Missing fields. Failed to update invoice.",
+        };
+    }
+    
+    const { customerId, amount, status, id } = validatedFields.data;
+    const amountInCents = amount * 100;
+    
+    try {
 		await sql`
-        UPDATE invoicess
+        UPDATE invoices
         SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
         WHERE id=${id}
         `;
 	} catch (error: any) {
-		console.error("Failed to edit invoice: ", error.message);
-		throw error;
+        return { message: "Database Error: Failed to update invoice", error: error}
 	}
 
 	revalidatePath("/dashboard/invoices");
