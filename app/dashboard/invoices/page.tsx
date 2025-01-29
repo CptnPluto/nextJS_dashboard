@@ -6,16 +6,24 @@ import { lusitana } from "@/app/ui/fonts";
 import { InvoicesTableSkeleton } from "@/app/ui/skeletons";
 import { Suspense } from "react";
 import { fetchInvoicesPages } from "@/app/lib/data";
+import { Metadata } from "next";
 
-export default async function Page( { searchParams } : { searchParams?: Promise<{ query?: string; page?: string }> }) {
+export const metadata: Metadata = {
+    title: 'Invoices'
+}
+
+export default async function Page({
+	searchParams,
+}: {
+	searchParams?: Promise<{ query?: string; page?: string }>;
+}) {
 	const params = await searchParams;
-    const query = params?.query || '';
+	const query = params?.query || "";
 	const currentPage = Number(params?.page || 1);
-    const totalPages = await fetchInvoicesPages(query);
+	const totalPages = await fetchInvoicesPages(query);
 
 	return (
 		<div className="w-full">
-            
 			<div className="flex w-full items-center justify-between">
 				<h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
 			</div>
