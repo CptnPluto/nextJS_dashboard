@@ -189,6 +189,7 @@ export async function fetchCustomers() {
 
 export async function fetchFilteredCustomers(query: string) {
 	try {
+		// await new Promise((resolve) => setTimeout(resolve, 2000));
 		const data = await sql<CustomersTableType>`
 		SELECT
 		  customers.id,
