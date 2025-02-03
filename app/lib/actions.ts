@@ -26,6 +26,7 @@ const UserSignup = z
 		name: z.string().min(2, { message: "Name must be 2 or more characters long." }),
 		email: z.string().email({ message: "Invalid email address." }),
 		password: z.string().min(6, { message: "Password must be 5 or more characters long." }),
+		passwordRe: z.string().min(6, { message: "Password must be 5 or more characters long." }),
 	})
 	.required();
 
@@ -33,6 +34,20 @@ export type State = {
 	errors?: {
 		customerId?: string[];
 		amount?: string[];
+		status?: string[];
+		// email?: string[];
+		// password?: string[];
+		// passwordRe?: string[];
+	};
+	message?: string | null;
+};
+
+export type SignupState = {
+	errors?: {
+		name?: string[];
+		email?: string[];
+		password?: string[];
+		passwordRe?: string[];
 		status?: string[];
 	};
 	message?: string | null;
@@ -94,7 +109,7 @@ export async function editInvoice(invoiceId: string, prevState: State, formData:
         WHERE id=${id}
         `;
 	} catch (error: any) {
-		return { message: "Database Error: Failed to update invoice", error: error };
+		return { message: "Database Error: Failed to update invoice", errors: error };
 	}
 
 	revalidatePath("/dashboard/invoices");
@@ -135,7 +150,7 @@ export async function authenticate(prevState: string | undefined, formData: Form
 	}
 }
 
-export async function signup(previousState: string | undefined, formData: FormData) {
+export async function signup(previousState: SignupState, formData: FormData): Promise<SignupState> {
 	// validate formData with zod
 	// check for dublicate user
 	// check for matching password
@@ -148,7 +163,7 @@ export async function signup(previousState: string | undefined, formData: FormDa
 	if (!validatedFields.success) {
 		return {
 			errors: validatedFields.error.flatten().fieldErrors,
-			message: "Missing fields. Failed to create invoice.",
+			message: "Missing fields. Failed to sign up.",
 		};
 	}
 
@@ -159,8 +174,18 @@ export async function signup(previousState: string | undefined, formData: FormDa
         INSERT INTO users (name, email, password)
         VALUES (${name}, ${email}, ${password})
     `;
+
+		return {
+			errors: undefined,
+			message: "Success!",
+		};
 		// await signIn("credentials", {email: email, password: {password}})
 	} catch (error: any) {
-		return { message: "Failed to insert data into db: ", error: error };
+		return {
+			errors: {
+				status: [error.message ?? "Unknown DB error"],
+			},
+			message: "Failed to insert data into db: ",
+		};
 	}
 }
