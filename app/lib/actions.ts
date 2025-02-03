@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import { User } from "./definitions";
+import bcrypt from "bcrypt";
 
 const FormSchema = z.object({
 	id: z.string(),
@@ -26,18 +26,19 @@ const UserSignup = z
 		name: z.string().min(2, { message: "Name must be 2 or more characters long." }),
 		email: z.string().email({ message: "Invalid email address." }),
 		password: z.string().min(6, { message: "Password must be 5 or more characters long." }),
-		passwordRe: z.string().min(6, { message: "Password must be 5 or more characters long." }),
+		passwordConf: z.string().min(6, { message: "Password must be 5 or more characters long." }),
 	})
-	.required();
+	// .required()
+	.refine((data) => data.password === data.passwordConf, {
+		message: "Passwords don't match",
+		path: ["passwordConf"],
+	});
 
 export type State = {
 	errors?: {
 		customerId?: string[];
 		amount?: string[];
 		status?: string[];
-		// email?: string[];
-		// password?: string[];
-		// passwordRe?: string[];
 	};
 	message?: string | null;
 };
@@ -47,7 +48,7 @@ export type SignupState = {
 		name?: string[];
 		email?: string[];
 		password?: string[];
-		passwordRe?: string[];
+		passwordConf?: string[];
 		status?: string[];
 	};
 	message?: string | null;
@@ -141,6 +142,7 @@ export async function authenticate(prevState: string | undefined, formData: Form
 		if (error instanceof AuthError) {
 			switch (error.type) {
 				case "CredentialsSignin":
+					console.log("Credentials: ", formData);
 					return "Invalid credentials.";
 				default:
 					return "Something went wrong.";
@@ -151,13 +153,11 @@ export async function authenticate(prevState: string | undefined, formData: Form
 }
 
 export async function signup(previousState: SignupState, formData: FormData): Promise<SignupState> {
-	// validate formData with zod
-	// check for dublicate user
-	// check for matching password
 	const validatedFields = UserSignup.safeParse({
 		name: formData.get("name"),
 		email: formData.get("email"),
 		password: formData.get("password"),
+		passwordConf: formData.get("passwordConf"),
 	});
 
 	if (!validatedFields.success) {
@@ -170,16 +170,13 @@ export async function signup(previousState: SignupState, formData: FormData): Pr
 	const { name, email, password } = validatedFields.data;
 
 	try {
-		await sql`
+		const saltRounds = 10;
+		bcrypt.hash(password, saltRounds).then(async function (hash) {
+			const res = await sql`
         INSERT INTO users (name, email, password)
-        VALUES (${name}, ${email}, ${password})
+        VALUES (${name}, ${email}, ${hash})
     `;
-
-		return {
-			errors: undefined,
-			message: "Success!",
-		};
-		// await signIn("credentials", {email: email, password: {password}})
+		});
 	} catch (error: any) {
 		return {
 			errors: {
@@ -188,4 +185,5 @@ export async function signup(previousState: SignupState, formData: FormData): Pr
 			message: "Failed to insert data into db: ",
 		};
 	}
+	redirect("/login");
 }
