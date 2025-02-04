@@ -46,7 +46,6 @@ export async function fetchLatestInvoices() {
 		}));
 
 		const timeAtFetch = new Date();
-		console.log(`Data fetched at ${timeAtFetch}`);
 		return { latestInvoices, timeAtFetch };
 	} catch (error) {
 		console.error("Database Error:", error);

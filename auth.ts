@@ -21,18 +21,14 @@ export const { auth, signIn, signOut } = NextAuth({
 	providers: [
 		Credentials({
 			async authorize(credentials) {
-				console.log("credentials: ", credentials);
 				const parsedCredentials = z
 					.object({ email: z.string().email(), password: z.string().min(6) })
 					.safeParse(credentials);
 
 				if (parsedCredentials.success) {
-					console.log("Parsed!");
 					const { email, password } = parsedCredentials.data;
 					const user = await getUser(email);
-                    console.log("User: ", user);
 					if (!user) return null;
-					console.log("now gonna bcrypt compare: ", password, user.password);
 					const passwordsMatch = await bcrypt.compare(password, user.password);
 
 					if (passwordsMatch) return user;
