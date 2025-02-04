@@ -85,7 +85,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
 	redirect("/dashboard/invoices");
 }
 
-export async function editInvoice(invoiceId: string, prevState: State, formData: FormData) {
+export async function editInvoice(invoiceId: string, prevState: State, formData: FormData): Promise<State>  {
 	const validatedFields = EditInvoice.safeParse({
 		customerId: formData.get("customerId"),
 		amount: formData.get("amount"),
