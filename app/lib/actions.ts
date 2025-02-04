@@ -172,7 +172,7 @@ export async function signup(previousState: SignupState, formData: FormData): Pr
 	try {
 		const saltRounds = 10;
 		bcrypt.hash(password, saltRounds).then(async function (hash) {
-			const res = await sql`
+		await sql`
         INSERT INTO users (name, email, password)
         VALUES (${name}, ${email}, ${hash})
     `;
